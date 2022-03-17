@@ -11,7 +11,7 @@ import os
 import board
 import busio
 import adafruit_bno055
-#from git import Repo
+from git import Repo
 from picamera import PiCamera
 
 #setup imu and camera
@@ -22,21 +22,19 @@ camera = PiCamera()
 
 #bonus: function for uploading image to Github
 def git_push():
-    try:
-        repo = Repo('/home/pi/Downloads/Repo') #PATH TO YOUR GITHUB REPO
-        repo.git.add('Pictures') #PATH TO YOUR IMAGES FOLDER WITHIN YOUR GITHUB REPO
-        repo.index.commit('New Photo')
-        print('Made the commit')
-        origin = repo.remote('CubeSat')
-        print('Added remote')
-        origin.push()
-        print('Pushed changes')
-    except:
-        print('Couldn\'t upload to git')
+    repo = Repo('/home/pi/Downloads/repository') #PATH TO YOUR GITHUB REPO_
+    repo.git.add('Pictures') #PATH TO YOUR IMAGES FOLDER WITHIN YOUR GITHUB REPO
+    repo.index.commit('New Photo')
+    print('Made the commit')
+    #origin = repo.remote('CubeSat')
+    #print('Added remote')
+    repo.git.push('CubeSat', 'master')
+    print('Pushed changes')
+
+        
 
 
-
-
+    
 #SET THRESHOLD
 threshold = 25
 
@@ -45,32 +43,74 @@ cameraTime = 5
 #read acceleration
 while True:
     accelX, accelY, accelZ = sensor.acceleration
+    
+    #try:
+    if ((abs(accelX) + abs(accelY)) > threshold) :
+        
+        #print(date.today().strftime("%m/%d/%y"), " " , datetime.now().strftime("%H:%M:%S"))
+        
+        #Take a picture and save it
+        camera.start_preview()
+        
+        time.sleep(cameraTime)
+        currentTime = datetime.now().strftime("%H:%M:%S")
+        currentDate = date.today().strftime("%m-%d-%y")
+        dateTime = currentDate + " " + currentTime
 
-    try:
-        if ((abs(accelX) + abs(accelY)) > threshold) :
+        #Take photo
+        camera.capture('/home/pi/Downloads/repository/Pictures/Capture_%s.jpg' % dateTime)
+        
+        camera.stop_preview()
+        
+        #Find Plastic in Image
+        
+        # Importing Image from PIL package
+        from PIL import Image, ImageColor
+        from functions import returnAvg, returnGreat, returnGreatString, returnLow, findSum, findDif, difGreat, determineMax, convert_rgb_to_names
+        # creating a image object
+        im = Image.open(r'/home/pi/Downloads/repository/Pictures/Capture_%s.jpg' % dateTime)
+        px = im.load()
 
-            #print(date.today().strftime("%m/%d/%y"), " " , datetime.now().strftime("%H:%M:%S"))
+        # Max and Min for Pixels in Image
+        xBound, yBound = im.size
 
-            #Take a picture and save it
-            camera.start_preview()
+        img = Image.new('RGB', (xBound, yBound))
 
-            time.sleep(cameraTime)
-            currentTime = datetime.now().strftime("%H.%M.%S")
-            currentDate = date.today().strftime("%m-%d-%y")
-            dateTime = currentDate + "_" + currentTime
+        colorname = "red"
 
-            #Take photo
-            camera.capture('/home/pi/Downloads/Repo/Pictures/Capture_.jpg' % dateTime)
-            git_push()
-            camera.stop_preview()
-            #Upload image to GitHub
+        needColor = True
 
-
-            print("Snapshot taken")
-            #Value refers to the length in seconds of the pause between snapshots
-            time.sleep(cameraTime + timeCooldown)
-    except:
-        print("Failure")
-
+        for x in range(xBound):
+            for y in range(yBound):
+                needColor = True
+                while needColor:
+                    r = px[x, y][0]
+                    g = px[x, y][1]
+                    b = px[x, y][2]
+                    pxColor = convert_rgb_to_names((r, g, b))
+                    print(pxColor)
+                    if pxColor == colorname:
+                        needColor = False
+                        print("Found", colorname, "color at coords:", x, ",", y)
+                        img.putpixel((x, y), (r, g, b))
+                    else:
+                        contrast = 50
+                        f = (returnGreat(r, g, b)-contrast)
+                        img.putpixel((x, y), (f, f, f))
+                        needColor = False
+        img.save("newImg.jpg")
+        print("Image Saved!")
+        img.show()
+        
+        #Upload image to GitHub
+        
+        
+        print("Snapshot taken")
+        #git_push()
+        #Value refers to the length in seconds of the pause between snapshots
+        time.sleep(cameraTime + timeCooldown)
+    #except:
+        #print("Failure")
+        
     #CHECK IF READINGS ARE ABOVE THRESHOLD
         #PAUSE
