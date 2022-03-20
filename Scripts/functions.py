@@ -77,21 +77,209 @@ def determineMax(inputVal, inputCol):
     else:
         return False
     
-from scipy.spatial import KDTree
-from webcolors import (
-    CSS3_NAMES_TO_HEX,
-    hex_to_rgb,
-)
-def convert_rgb_to_names(rgb_tuple):
-    
-    # a dictionary of all the hex and their respective names in css3
-    css3_db = CSS3_NAMES_TO_HEX
-    names = []
-    rgb_values = []
-    for color_hex, color_name in css3_db.items():
-        names.append(color_name)
-        rgb_values.append(hex_to_rgb(color_hex))
-    
-    kdt_db = KDTree(rgb_values)
-    distance, index = kdt_db.query(rgb_tuple)
-    return f'{names[index]}'
+import webcolors
+
+def closest_colour(requested_colour):
+    min_colours = {}
+    for key, name in webcolors.CSS3_HEX_TO_NAMES.items():
+        r_c, g_c, b_c = webcolors.hex_to_rgb(key)
+        rd = (r_c - requested_colour[0]) ** 2
+        gd = (g_c - requested_colour[1]) ** 2
+        bd = (b_c - requested_colour[2]) ** 2
+        min_colours[(rd + gd + bd)] = name
+    return min_colours[min(min_colours.keys())]
+
+def get_colour_name(requested_colour):
+    try:
+        closest_name = actual_name = webcolors.rgb_to_name(requested_colour)
+    except ValueError:
+        closest_name = closest_colour(requested_colour)
+        actual_name = None
+    return closest_name
+
+def rgb2name(rgb):
+    try:
+        named_color = webcolors.rgb_to_name(rgb, spec='css3')
+    except ValueError:
+        named_color = closest_colour(rgb)
+    return named_color
+
+def inColBounds(pxCol, colName):
+    # Finds shades of blue for water
+    if colName == "plastic":
+        if pxCol == "blue":
+            return False
+        elif pxCol == "mediumblue":
+            return False
+        elif pxCol == "navy":
+            return False
+        elif pxCol == "midnightblue":
+            return False
+        elif pxCol == "dodgerblue":
+            return False
+        elif pxCol == "steelblue":
+            return False
+        elif pxCol == "darkslategray":
+            return False
+        elif pxCol == "darkslateblue":
+            return False
+        elif pxCol == "teal":
+            return False
+        else:
+            return True
+    # Finds red pixels in an image
+    elif colName == "red":
+        if pxCol == "brown":
+            return True
+        elif pxCol == "indianred":
+            return True
+        elif pxCol == "indiancoral":
+            return True
+        elif pxCol == "crimson":
+            return True
+        elif pxCol == "lightcoral":
+            return True
+        elif pxCol == "darkred":
+            return True
+        elif pxCol == "orangered":
+            return True
+        elif pxCol == "darkpink":
+            return True
+        elif pxCol == "firebrick":
+            return True
+        elif pxCol == "deeppink":
+            return True
+        elif pxCol == "red":
+            return True
+        elif pxCol == "maroon":
+            return True
+        elif pxCol == "tomatoe":
+            return True
+        else:
+            return False
+    # Finds yellow pixels in an image
+    elif colName == "yellow":
+        if pxCol == "yellow":
+            return True
+        elif pxCol == "olive":
+            return True
+        elif pxCol == "gold":
+            return True
+        elif pxCol == "goldenrod":
+            return True
+        elif pxCol == "khaki":
+            return True
+        elif pxCol == "lemonchiffon":
+            return True
+        elif pxCol == "lightgoldenrodyellow":
+            return True
+        elif pxCol == "lightyellow":
+            return True
+        elif pxCol == "palegoldenrod":
+            return True
+        elif pxCol == "darkkhaki":
+            return True
+        else:
+            return False
+    # Finds green pixels in an image
+    elif colName == "green":
+        if pxCol == "green":
+            return True
+        elif pxCol == "lime":
+            return True
+        elif pxCol == "chartreuse":
+            return True
+        elif pxCol == "darkgreen":
+            return True
+        elif pxCol == "darkolivegreen":
+            return True
+        elif pxCol == "darkseagreen":
+            return True
+        elif pxCol == "forestgreen":
+            return True
+        elif pxCol == "greenyellow":
+            return True
+        elif pxCol == "lawngreen":
+            return True
+        elif pxCol == "lightgreen":
+            return True
+        elif pxCol == "limegreen":
+            return True
+        elif pxCol == "mediumseagreen":
+            return True
+        elif pxCol == "mediumspringgreen":
+            return True
+        elif pxCol == "olivedrab":
+            return True
+        elif pxCol == "palegreen":
+            return True
+        elif pxCol == "seagreen":
+            return True
+        elif pxCol == "springgreen":
+            return True
+        elif pxCol == "yellowgreen":
+            return True
+        else:
+            return False
+    # Finds blue pixels in an image
+    elif colName == "blue":
+        if pxCol == "blue":
+            return True
+        elif pxCol == "navy":
+            return True
+        elif pxCol == "teal":
+            return True
+        elif pxCol == "aqua":
+            return True
+        elif pxCol == "aliceblue":
+            return True
+        elif pxCol == "aquamarine":
+            return True
+        elif pxCol == "aquamarine":
+            return True
+        elif pxCol == "azure":
+            return True
+        elif pxCol == "cadetblue":
+            return True
+        elif pxCol == "cornflowerblue":
+            return True
+        elif pxCol == "cyan":
+            return True
+        elif pxCol == "darkblue":
+            return True
+        elif pxCol == "darkcyan":
+            return True
+        elif pxCol == "darktorquoise":
+            return True
+        elif pxCol == "deepskyblue":
+            return True
+        elif pxCol == "dodgerblue":
+            return True
+        elif pxCol == "lightblue":
+            return True
+        elif pxCol == "lightcyan":
+            return True
+        elif pxCol == "lightskyblue":
+            return True
+        elif pxCol == "mediumblue":
+            return True
+        elif pxCol == "mediumtorquoise":
+            return True
+        elif pxCol == "midnightblue":
+            return True
+        elif pxCol == "paletorquoise":
+            return True
+        elif pxCol == "powderblue":
+            return True
+        elif pxCol == "skyblue":
+            return True
+        elif pxCol == "slateblue":
+            return True
+        elif pxCol == "steelblue":
+            return True
+        elif pxCol == "turquoise":
+            return True
+        else:
+            return False
+    else:
+        return True
